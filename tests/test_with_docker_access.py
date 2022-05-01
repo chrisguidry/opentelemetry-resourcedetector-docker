@@ -1,5 +1,4 @@
-import os
-from typing import Dict, Generator
+from typing import Dict
 from unittest import mock
 
 import pytest
@@ -8,7 +7,7 @@ from docker.models.containers import Container
 from docker.models.images import Image
 from opentelemetry.sdk.resources import Resource
 
-from opentelemetry.resourcedetector.docker import DockerResourceDetector
+from opentelemetry_resourcedetector_docker import DockerResourceDetector
 
 
 @pytest.fixture

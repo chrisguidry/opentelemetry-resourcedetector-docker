@@ -14,18 +14,23 @@ profile = "black"
 
 [tool.mypy]
 namespace_packages = true
-explicit_package_bases = true
-mypy_path = "src"
 
 [[tool.mypy.overrides]]
-module = ['docker', 'docker.tls', 'docker.models.containers']
+module = [
+    'docker',
+    'docker.errors',
+    'docker.models.containers',
+    'docker.models.images',
+    'docker.tls',
+]
 ignore_missing_imports = true
 
 [tool.pylint.messages_control]
 disable = [
     'attribute-defined-outside-init',
-    'invalid-name',
+    'duplicate-code',
     'fixme',
+    'invalid-name',
     'too-few-public-methods',
 
     'missing-class-docstring',
@@ -40,6 +45,10 @@ disable = [
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = """
+    --black
+    --isort
+    --pylint
+    --mypy
     --cov=src
     --cov=tests
     --cov-branch
@@ -47,8 +56,3 @@ addopts = """
     --cov-fail-under=100
     --no-cov-on-fail
 """
-
-#    --black
-#    --isort
-#    --pylint
-#    --mypy

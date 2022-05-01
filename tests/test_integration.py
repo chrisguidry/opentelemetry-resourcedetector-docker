@@ -3,15 +3,16 @@ import os
 import tarfile
 import tempfile
 from textwrap import dedent
-from typing import Dict, Generator
+from typing import Dict
 
 import docker
 import pytest
+from docker import DockerClient
 from docker.models.containers import Container
 
 
 @pytest.fixture(scope='session')
-def docker_client() -> docker.DockerClient:
+def docker_client() -> DockerClient:
     try:
         client = docker.from_env()
         client.containers.list()
@@ -22,13 +23,13 @@ def docker_client() -> docker.DockerClient:
 
 
 @pytest.fixture(scope='session')
-def example_script() -> Generator[str, None, None]:
+def example_script():
     with tempfile.NamedTemporaryFile() as script_file:
         script_file.write(
             dedent(
                 """
             import json
-            from opentelemetry.resourcedetector.docker import DockerResourceDetector
+            from opentelemetry_resourcedetector_docker import DockerResourceDetector
 
             resource = DockerResourceDetector().detect()
             print(json.dumps(dict(resource.attributes)))
@@ -43,14 +44,12 @@ def example_script() -> Generator[str, None, None]:
 
 
 @pytest.fixture(scope='module')
-def container_name(testrun_uid) -> str:
-    return f'unit-tests-{testrun_uid}'
+def container_name(testrun_uid, worker_id) -> str:
+    return f'unit-tests-{testrun_uid}-{worker_id}'
 
 
 @pytest.fixture(scope='module')
-def container(
-    docker_client: docker.APIClient, container_name: str
-) -> Generator[Container, None, None]:
+def container(docker_client: DockerClient, container_name: str):
     container: Container = docker_client.containers.run(
         image='python:3.10',
         command='sleep 120s',

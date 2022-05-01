@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from opentelemetry.resourcedetector.docker import DockerResourceDetector, NotInDocker
+from opentelemetry_resourcedetector_docker import DockerResourceDetector, NotInDocker
 
 
 @pytest.fixture
@@ -10,7 +10,7 @@ def docker_cgroups():
     cgroup_lines = [
         '12:devices:/docker/c2c89fc760c453b930a798f451792d96b5736be7686f257c43c8e2f622b6d206',
         '11:memory:/docker/c2c89fc760c453b930a798f451792d96b5736be7686f257c43c8e2f622b6d206',
-        '10:net_cls,net_prio:/docker/c2c89fc760c453b930a798f451792d96b5736be7686f257c43c8e2f622b6d206',
+        '10:net_cls:/docker/c2c89fc760c453b930a798f451792d96b5736be7686f257c43c8e2f622b6d206',
         '9:pids:/docker/c2c89fc760c453b930a798f451792d96b5736be7686f257c43c8e2f622b6d206',
         '8:cpuset:/docker/c2c89fc760c453b930a798f451792d96b5736be7686f257c43c8e2f622b6d206',
         '7:rdma:/docker/c2c89fc760c453b930a798f451792d96b5736be7686f257c43c8e2f622b6d206',

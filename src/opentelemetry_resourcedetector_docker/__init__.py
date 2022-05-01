@@ -21,7 +21,7 @@ class DockerResourceDetector(ResourceDetector):
     Docker, providing the `container.*` attributes if detected."""
 
     @functools.lru_cache(maxsize=1)
-    def container_id(self) -> str:
+    def container_id(self) -> str:  # pylint: disable=no-self-use
         cgroup_pattern = r'\d+:[\w=]+:/docker(-[ce]e)?/(?P<container_id>\w+)'
         with open('/proc/self/cgroup', 'r', encoding='utf-8') as cgroups:
             for line in cgroups:

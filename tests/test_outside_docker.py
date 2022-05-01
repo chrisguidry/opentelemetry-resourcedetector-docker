@@ -2,7 +2,7 @@ from unittest import mock
 
 from opentelemetry.sdk.resources import Resource
 
-from opentelemetry.resourcedetector.docker import DockerResourceDetector
+from opentelemetry_resourcedetector_docker import DockerResourceDetector
 
 
 def test_outside_docker():
