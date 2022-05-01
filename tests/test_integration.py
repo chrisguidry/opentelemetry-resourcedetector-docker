@@ -12,8 +12,10 @@ from docker.models.containers import Container
 
 
 @pytest.fixture(scope='session')
-@pytest.mark.skipif('RUNNING_IN_GITHUB_ACTIONS' in os.environ, reason='Github Actions')
 def docker_client() -> DockerClient:
+    if 'RUNNING_IN_GITHUB_ACTIONS' in os.environ:
+        raise pytest.skip('Running in Github Actions')
+
     try:
         client = docker.from_env()
         client.containers.list()
