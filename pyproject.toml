@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+skip-string-normalization = true
+target-version = ['py39']
+
+[tool.coverage.report]
+omit = []
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = ['docker', 'docker.tls', 'docker.models.containers']
+ignore_missing_imports = true
+
+[tool.pylint.messages_control]
+disable = [
+    'attribute-defined-outside-init',
+    'invalid-name',
+    'fixme',
+    'too-few-public-methods',
+
+    'missing-class-docstring',
+    'missing-function-docstring',
+    'missing-module-docstring',
+
+    # fundamental to how pytest fixtures work
+    'redefined-outer-name',
+    'unused-argument'
+]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = """
+    --cov=src
+    --cov-branch
+    --cov-report=term-missing
+    --cov-fail-under=100
+    --no-cov-on-fail
+"""
+
+#    --black
+#    --isort
+#    --pylint
+#    --mypy
