@@ -66,6 +66,8 @@ def container(docker_client: DockerClient, container_name: str):
     result = container.exec_run("pip install -e .", stdout=True, stderr=True)
     assert result.exit_code == 0, result.output
 
+    print(result.output)
+
     try:
         yield container
     finally:
@@ -79,6 +81,8 @@ def resource(container: Container, example_script: str) -> Dict:
 
     result = container.exec_run("python /tmp/example.py", stdout=True, stderr=True)
     assert result.exit_code == 0, result.output
+
+    print(result.output)
 
     resource_attributes = json.loads(result.output.decode())
     return resource_attributes
