@@ -7,7 +7,9 @@ skip-string-normalization = true
 target-version = ['py39']
 
 [tool.coverage.report]
-omit = []
+omit = [
+    "tests/test_integration.py"
+]
 
 [tool.isort]
 profile = "black"

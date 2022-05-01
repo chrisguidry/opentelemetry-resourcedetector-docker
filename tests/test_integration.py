@@ -13,34 +13,17 @@ from docker.models.containers import Container
 
 @pytest.fixture(scope='session')
 def docker_client() -> DockerClient:
+    if 'RUNNING_IN_GITHUB_ACTIONS' in os.environ:
+        raise pytest.skip('Running in Github Actions')
+
     try:
         client = docker.from_env()
         client.containers.list()
         return client
     except Exception:  # pragma: no cover pylint: disable=broad-except
         pass
+
     raise pytest.skip('Docker is not available')  # pragma: no cover
-
-
-@pytest.fixture(scope='session')
-def example_script():
-    with tempfile.NamedTemporaryFile() as script_file:
-        script_file.write(
-            dedent(
-                """
-            import json
-            from opentelemetry_resourcedetector_docker import DockerResourceDetector
-
-            resource = DockerResourceDetector().detect()
-            print(json.dumps(dict(resource.attributes)))
-            """
-            ).encode('utf-8')
-        )
-        script_file.flush()
-        with tempfile.NamedTemporaryFile() as script_tar:
-            with tarfile.open(script_tar.name, 'w') as tar:
-                tar.add(script_file.name, 'example.py')
-            yield script_tar.name
 
 
 @pytest.fixture(scope='module')
@@ -70,6 +53,30 @@ def container(docker_client: DockerClient, container_name: str):
         yield container
     finally:
         container.remove(force=True)
+
+
+@pytest.fixture(scope='session')
+def example_script():
+    with tempfile.NamedTemporaryFile() as script_file:
+        script_file.write(
+            dedent(
+                """
+            import json
+            from opentelemetry_resourcedetector_docker import DockerResourceDetector
+
+            detector = DockerResourceDetector()
+            resource = detector.detect()
+            attributes = dict(resource.attributes)
+
+            print(json.dumps(attributes))
+            """
+            ).encode('utf-8')
+        )
+        script_file.flush()
+        with tempfile.NamedTemporaryFile() as script_tar:
+            with tarfile.open(script_tar.name, 'w') as tar:
+                tar.add(script_file.name, 'example.py')
+            yield script_tar.name
 
 
 @pytest.fixture(scope='module')
