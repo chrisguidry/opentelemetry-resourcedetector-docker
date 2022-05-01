@@ -13,12 +13,16 @@ from docker.models.containers import Container
 
 @pytest.fixture(scope='session')
 def docker_client() -> DockerClient:
+    if os.getenv('GITHUB_ACTIONS'):
+        raise pytest.skip('Running on Github')  # pragma: no cover
+
     try:
         client = docker.from_env()
         client.containers.list()
         return client
     except Exception:  # pragma: no cover pylint: disable=broad-except
         pass
+
     raise pytest.skip('Docker is not available')  # pragma: no cover
 
 
@@ -64,11 +68,6 @@ def example_script():
             resource = detector.detect()
             attributes = dict(resource.attributes)
 
-            attributes['detector'] = {
-                'running_in_docker': detector.running_in_docker(),
-                'cgroup_lines': detector.cgroup_lines(),
-            }
-
             print(json.dumps(attributes))
             """
             ).encode('utf-8')
@@ -87,8 +86,6 @@ def resource(container: Container, example_script: str) -> Dict:
 
     result = container.exec_run("python /tmp/example.py", stdout=True, stderr=True)
     assert result.exit_code == 0, result.output
-
-    print(result.output)
 
     resource_attributes = json.loads(result.output.decode())
     return resource_attributes
