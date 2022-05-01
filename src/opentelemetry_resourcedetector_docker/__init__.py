@@ -21,13 +21,17 @@ class DockerResourceDetector(ResourceDetector):
     Docker, providing the `container.*` attributes if detected."""
 
     @functools.lru_cache(maxsize=1)
-    def container_id(self) -> str:  # pylint: disable=no-self-use
+    def container_id(self) -> str:
         cgroup_pattern = r'\d+:[\w=]+:/docker(-[ce]e)?/(?P<container_id>\w+)'
-        with open('/proc/self/cgroup', 'r', encoding='utf-8') as cgroups:
-            for line in cgroups:
-                if match := re.match(cgroup_pattern, line):
-                    return match.group('container_id')
+        for line in self.cgroup_lines():
+            if match := re.match(cgroup_pattern, line):
+                return match.group('container_id')
         raise NotInDocker()
+
+    @functools.lru_cache(maxsize=1)
+    def cgroup_lines(self):  # pylint: disable=no-self-use
+        with open('/proc/self/cgroup', 'r', encoding='utf-8') as cgroups:
+            return list(cgroups)
 
     @functools.lru_cache(maxsize=1)
     def running_in_docker(self) -> bool:

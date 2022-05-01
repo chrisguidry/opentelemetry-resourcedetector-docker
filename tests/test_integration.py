@@ -22,27 +22,6 @@ def docker_client() -> DockerClient:
     raise pytest.skip('Docker is not available')  # pragma: no cover
 
 
-@pytest.fixture(scope='session')
-def example_script():
-    with tempfile.NamedTemporaryFile() as script_file:
-        script_file.write(
-            dedent(
-                """
-            import json
-            from opentelemetry_resourcedetector_docker import DockerResourceDetector
-
-            resource = DockerResourceDetector().detect()
-            print(json.dumps(dict(resource.attributes)))
-            """
-            ).encode('utf-8')
-        )
-        script_file.flush()
-        with tempfile.NamedTemporaryFile() as script_tar:
-            with tarfile.open(script_tar.name, 'w') as tar:
-                tar.add(script_file.name, 'example.py')
-            yield script_tar.name
-
-
 @pytest.fixture(scope='module')
 def container_name(testrun_uid, worker_id) -> str:
     return f'unit-tests-{testrun_uid}-{worker_id}'
@@ -66,12 +45,40 @@ def container(docker_client: DockerClient, container_name: str):
     result = container.exec_run("pip install -e .", stdout=True, stderr=True)
     assert result.exit_code == 0, result.output
 
-    print(result.output)
-
     try:
         yield container
     finally:
         container.remove(force=True)
+
+
+@pytest.fixture(scope='session')
+def example_script():
+    with tempfile.NamedTemporaryFile() as script_file:
+        script_file.write(
+            dedent(
+                """
+            import json
+            from opentelemetry_resourcedetector_docker import DockerResourceDetector
+
+            detector = DockerResourceDetector()
+            resource = detector.detect()
+            attributes = dict(resource.attributes)
+
+            attributes['detector'] = {
+                'container_id': detector.container_id(),
+                'running_in_docker': detector.running_in_docker(),
+                'cgroup_lines': detector.cgroup_lines(),
+            }
+
+            print(json.dumps(attributes))
+            """
+            ).encode('utf-8')
+        )
+        script_file.flush()
+        with tempfile.NamedTemporaryFile() as script_tar:
+            with tarfile.open(script_tar.name, 'w') as tar:
+                tar.add(script_file.name, 'example.py')
+            yield script_tar.name
 
 
 @pytest.fixture(scope='module')
