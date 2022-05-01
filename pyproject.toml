@@ -41,6 +41,7 @@ disable = [
 minversion = "6.0"
 addopts = """
     --cov=src
+    --cov=tests
     --cov-branch
     --cov-report=term-missing
     --cov-fail-under=100

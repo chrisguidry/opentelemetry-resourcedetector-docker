@@ -20,20 +20,8 @@ class DockerResourceDetector(ResourceDetector):
     """Detects OpenTelemetry Resource attributes for a container running within
     Docker, providing the `container.*` attributes if detected."""
 
-    @classmethod
-    @functools.lru_cache(maxsize=None)
-    def running_in_docker(cls) -> bool:
-        try:
-            return bool(cls.container_id())
-        except FileNotFoundError:
-            pass
-        except NotInDocker:
-            pass
-        return False
-
-    @staticmethod
-    @functools.lru_cache(maxsize=None)
-    def container_id() -> str:
+    @functools.lru_cache(maxsize=1)
+    def container_id(self) -> str:
         cgroup_pattern = r'\d+:[\w=]+:/docker(-[ce]e)?/(?P<container_id>\w+)'
         with open('/proc/self/cgroup', 'r', encoding='utf-8') as cgroups:
             for line in cgroups:
@@ -41,10 +29,19 @@ class DockerResourceDetector(ResourceDetector):
                     return match.group('container_id')
         raise NotInDocker()
 
-    @classmethod
-    @functools.lru_cache(maxsize=None)
-    def docker_client(cls) -> Optional[DockerClient]:
-        if not cls.running_in_docker():
+    @functools.lru_cache(maxsize=1)
+    def running_in_docker(self) -> bool:
+        try:
+            return bool(self.container_id())
+        except FileNotFoundError:
+            pass
+        except NotInDocker:
+            pass
+        return False
+
+    @functools.lru_cache(maxsize=1)
+    def docker_client(self) -> Optional[DockerClient]:
+        if not self.running_in_docker():
             return None
 
         try:
