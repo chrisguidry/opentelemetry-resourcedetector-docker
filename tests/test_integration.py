@@ -65,7 +65,6 @@ def example_script():
             attributes = dict(resource.attributes)
 
             attributes['detector'] = {
-                'container_id': detector.container_id(),
                 'running_in_docker': detector.running_in_docker(),
                 'cgroup_lines': detector.cgroup_lines(),
             }
