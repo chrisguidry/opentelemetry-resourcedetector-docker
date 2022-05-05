@@ -1,6 +1,7 @@
 from unittest import mock
 
 import pytest
+from opentelemetry.sdk.resources import Resource
 
 from opentelemetry_resourcedetector_docker import DockerResourceDetector, NotInDocker
 
@@ -36,9 +37,13 @@ def test_container_id(docker_cgroups):
     )
 
 
-def test_docker_client(docker_cgroups):
-    with mock.patch('docker.from_env') as from_env:
-        assert DockerResourceDetector().docker_client() == from_env.return_value
+def test_resource_includes_container_id(docker_cgroups):
+    assert DockerResourceDetector().running_in_docker()
+
+    assert DockerResourceDetector().detect().attributes == {
+        'container.runtime': 'docker',
+        'container.id': 'c2c89fc760c453b930a798f451792d96b5736be7686f257c43c8e2f622b6d206',
+    }
 
 
 @pytest.fixture
@@ -69,9 +74,7 @@ def test_not_in_docker(out_of_docker_cgroups):
     with pytest.raises(NotInDocker):
         DockerResourceDetector().container_id()
 
-
-def test_no_docker_client(out_of_docker_cgroups):
-    assert not DockerResourceDetector().docker_client()
+    assert DockerResourceDetector().detect() == Resource.get_empty()
 
 
 @pytest.fixture
@@ -86,6 +89,4 @@ def test_not_even_in_a_cgroup(not_even_a_cgroup_file):
     with pytest.raises(FileNotFoundError):
         DockerResourceDetector().container_id()
 
-
-def test_definition_no_docker_client(not_even_a_cgroup_file):
-    assert not DockerResourceDetector().docker_client()
+    assert DockerResourceDetector().detect() == Resource.get_empty()

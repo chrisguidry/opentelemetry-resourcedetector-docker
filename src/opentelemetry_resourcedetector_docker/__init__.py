@@ -2,12 +2,9 @@ import functools
 import os
 import re
 import socket
-from typing import Optional
+from contextlib import contextmanager
+from typing import Generator, Optional
 
-import docker
-from docker import DockerClient
-from docker.errors import NotFound
-from docker.models.containers import Container
 from opentelemetry.sdk.resources import Resource, ResourceDetector
 from opentelemetry.semconv.resource import ResourceAttributes
 
@@ -43,48 +40,13 @@ class DockerResourceDetector(ResourceDetector):
             pass
         return False
 
-    @functools.lru_cache(maxsize=1)
-    def docker_client(self) -> Optional[DockerClient]:
-        if not self.running_in_docker():
-            return None
-
-        try:
-            return docker.from_env()
-        except Exception:  # pylint: disable=broad-except
-            pass
-
-        return None
-
     def detect(self) -> Resource:
         if not self.running_in_docker():
             return Resource.get_empty()
 
-        container: Optional[Container] = None
-        if client := self.docker_client():
-            try:
-                container = client.containers.get(self.container_id())
-            except NotFound:
-                pass
-
-        if not container:
-            return Resource(
-                {
-                    ResourceAttributes.CONTAINER_RUNTIME: 'docker',
-                    ResourceAttributes.CONTAINER_ID: self.container_id(),
-                }
-            )
-
-        try:
-            image_name, image_tag = container.image.tags[0].split(':')
-        except IndexError:
-            image_name, image_tag = container.image.id, ''
-
         return Resource(
             {
                 ResourceAttributes.CONTAINER_RUNTIME: 'docker',
-                ResourceAttributes.CONTAINER_ID: container.id,
-                ResourceAttributes.CONTAINER_NAME: container.name,
-                ResourceAttributes.CONTAINER_IMAGE_NAME: image_name,
-                ResourceAttributes.CONTAINER_IMAGE_TAG: image_tag,
+                ResourceAttributes.CONTAINER_ID: self.container_id(),
             }
         )

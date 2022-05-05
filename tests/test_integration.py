@@ -2,28 +2,38 @@ import json
 import os
 import tarfile
 import tempfile
+import warnings
 from textwrap import dedent
 from typing import Dict
 
-import docker
 import pytest
+
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', category=DeprecationWarning)
+    import docker
 from docker import DockerClient
 from docker.models.containers import Container
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def docker_client() -> DockerClient:
     if 'RUNNING_IN_GITHUB_ACTIONS' in os.environ:
         raise pytest.skip('Running in Github Actions')
 
+    client = None
     try:
         client = docker.from_env()
         client.containers.list()
-        return client
     except Exception:  # pragma: no cover pylint: disable=broad-except
         pass
 
-    raise pytest.skip('Docker is not available')  # pragma: no cover
+    if not client:
+        raise pytest.skip('Docker is not available')  # pragma: no cover
+
+    try:
+        yield client
+    finally:
+        client.close()
 
 
 @pytest.fixture(scope='module')
@@ -97,15 +107,3 @@ def test_container_runtime(container: Container, resource: Dict):
 
 def test_container_id(container: Container, resource: Dict):
     assert resource['container.id'] == container.id
-
-
-def test_container_name(container: Container, resource: Dict, container_name: str):
-    assert resource['container.name'] == container_name
-
-
-def test_container_image_name(container: Container, resource: Dict):
-    assert resource['container.image.name'] == 'python'
-
-
-def test_container_image_tag(container: Container, resource: Dict):
-    assert resource['container.image.tag'] == '3.10'

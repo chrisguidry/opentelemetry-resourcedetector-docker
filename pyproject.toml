@@ -49,8 +49,9 @@ minversion = "6.0"
 addopts = """
     --black
     --isort
-    --pylint
     --mypy
+    --pylint
+    -n 2
     --cov=src
     --cov=tests
     --cov-branch
