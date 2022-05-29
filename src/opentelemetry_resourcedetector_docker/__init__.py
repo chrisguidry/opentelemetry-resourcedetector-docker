@@ -1,9 +1,5 @@
 import functools
-import os
 import re
-import socket
-from contextlib import contextmanager
-from typing import Generator, Optional
 
 from opentelemetry.sdk.resources import Resource, ResourceDetector
 from opentelemetry.semconv.resource import ResourceAttributes
@@ -19,6 +15,13 @@ class DockerResourceDetector(ResourceDetector):
 
     @functools.lru_cache(maxsize=1)
     def container_id(self) -> str:
+        # cgroup v2 approach
+        mount_pattern = r'.+/docker/containers/(?P<container_id>\w+)/.+'
+        for line in self.mounts():
+            if match := re.match(mount_pattern, line):
+                return match.group('container_id')
+
+        # cgroup v1 approach
         cgroup_pattern = r'\d+:[\w=]+:/docker(-[ce]e)?/(?P<container_id>\w+)'
         for line in self.cgroup_lines():
             if match := re.match(cgroup_pattern, line):
@@ -26,7 +29,12 @@ class DockerResourceDetector(ResourceDetector):
         raise NotInDocker()
 
     @functools.lru_cache(maxsize=1)
-    def cgroup_lines(self):  # pylint: disable=no-self-use
+    def mounts(self):
+        with open('/proc/self/mountinfo', 'r', encoding='utf-8') as mounts:
+            return list(mounts)
+
+    @functools.lru_cache(maxsize=1)
+    def cgroup_lines(self):
         with open('/proc/self/cgroup', 'r', encoding='utf-8') as cgroups:
             return list(cgroups)
 
