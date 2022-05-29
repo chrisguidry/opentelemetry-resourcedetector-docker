@@ -27,30 +27,13 @@ module = [
 ]
 ignore_missing_imports = true
 
-[tool.pylint.messages_control]
-disable = [
-    'attribute-defined-outside-init',
-    'duplicate-code',
-    'fixme',
-    'invalid-name',
-    'too-few-public-methods',
-
-    'missing-class-docstring',
-    'missing-function-docstring',
-    'missing-module-docstring',
-
-    # fundamental to how pytest fixtures work
-    'redefined-outer-name',
-    'unused-argument'
-]
-
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = """
     --black
     --isort
     --mypy
-    --pylint
+    --flake8
     -n 2
     --cov=src
     --cov=tests

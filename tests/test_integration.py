@@ -11,6 +11,7 @@ import pytest
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
     import docker
+
 from docker import DockerClient
 from docker.models.containers import Container
 
@@ -24,7 +25,7 @@ def docker_client() -> DockerClient:
     try:
         client = docker.from_env()
         client.containers.list()
-    except Exception:  # pragma: no cover pylint: disable=broad-except
+    except Exception:  # pragma: no cover
         pass
 
     if not client:
