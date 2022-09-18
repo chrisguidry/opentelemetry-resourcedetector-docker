@@ -1,8 +1,11 @@
 import functools
 import re
+from importlib.metadata import version
 
 from opentelemetry.sdk.resources import Resource, ResourceDetector
 from opentelemetry.semconv.resource import ResourceAttributes
+
+__version__ = version("opentelemetry_resourcedetector_docker")
 
 
 class NotInDocker(Exception):

@@ -1,6 +1,8 @@
 [build-system]
-requires = ["setuptools>=42"]
+requires = ["setuptools>=62", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
 
 [tool.black]
 skip-string-normalization = true
@@ -30,10 +32,6 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = """
-    --black
-    --isort
-    --mypy
-    --flake8
     -n 2
     --cov=src
     --cov=tests
