@@ -37,10 +37,6 @@ endif
 .PHONY: install
 install: .bookkeeping/installed .git/hooks/pre-commit
 
-.PHONY: all-versions
-all-versions:
-	tox -p --recreate --notest
-
 .PHONY: clean
 clean:
 	rm -Rf .bookkeeping/
