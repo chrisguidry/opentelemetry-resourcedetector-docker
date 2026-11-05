@@ -69,9 +69,7 @@ def container(docker_client: DockerClient, container_name: str):
 @pytest.fixture(scope='session')
 def example_script():
     with tempfile.NamedTemporaryFile() as script_file:
-        script_file.write(
-            dedent(
-                """
+        script_file.write(dedent("""
             import json
             from opentelemetry_resourcedetector_docker import DockerResourceDetector
 
@@ -80,9 +78,7 @@ def example_script():
             attributes = dict(resource.attributes)
 
             print(json.dumps(attributes))
-            """
-            ).encode('utf-8')
-        )
+            """).encode('utf-8'))
         script_file.flush()
         with tempfile.NamedTemporaryFile() as script_tar:
             with tarfile.open(script_tar.name, 'w') as tar:
