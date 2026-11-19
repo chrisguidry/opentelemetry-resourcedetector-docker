@@ -1,42 +1,77 @@
 [build-system]
-requires = ["setuptools>=84.2.1", "setuptools_scm[toml]>=10.3.4"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
-[tool.setuptools_scm]
-
-[tool.black]
-skip-string-normalization = true
-target-version = ['py311']
-
-[tool.coverage.report]
-omit = [
-    "tests/test_integration.py"
+[project]
+name = "opentelemetry-resourcedetector-docker"
+dynamic = ["version"]
+description = "An OpenTelemetry package to populate Resource attributes from Docker containers"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Chris Guidry", email = "chris@theguidrys.us" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Typing :: Typed",
+]
+dependencies = [
+    "opentelemetry-sdk",
+    "opentelemetry-semantic-conventions",
 ]
 
-[tool.isort]
-profile = "black"
-
-[tool.mypy]
-namespace_packages = true
-
-[[tool.mypy.overrides]]
-module = [
-    'docker',
-    'docker.errors',
-    'docker.models.containers',
-    'docker.models.images',
-    'docker.tls',
+[dependency-groups]
+dev = [
+    "codespell>=2.4.1",
+    "docker>=7.1.0",
+    "loq>=0.1.0a3",
+    "prek>=0.3.1",
+    "pyright>=1.1.408",
+    "pytest-cov>=6.0.0",
+    "pytest-xdist>=3.6.0",
+    "pytest>=9.0.2",
 ]
-ignore_missing_imports = true
+
+[project.urls]
+"Repository" = "https://github.com/chrisguidry/opentelemetry-resourcedetector-docker"
+"Bug Tracker" = "https://github.com/chrisguidry/opentelemetry-resourcedetector-docker/issues"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/opentelemetry_resourcedetector_docker"]
+
+[tool.ruff]
+target-version = "py311"
 
 [tool.pytest.ini_options]
-minversion = "6.0"
-addopts = """
-    -n 2
-    --cov=src
-    --cov=tests
-    --cov-branch
-    --cov-report=term-missing
-    --cov-fail-under=100
-    --no-cov-on-fail
-"""
+addopts = [
+    "--cov=src/opentelemetry_resourcedetector_docker",
+    "--cov=tests",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-branch",
+    "--cov-fail-under=100",
+    "-n",
+    "2",
+]
+filterwarnings = ["error"]
+
+[tool.coverage.report]
+# The integration tests need a Docker daemon and skip themselves without one.
+omit = [
+    "tests/test_integration.py",
+]
+
+[tool.pyright]
+include = ["src", "tests"]
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"
