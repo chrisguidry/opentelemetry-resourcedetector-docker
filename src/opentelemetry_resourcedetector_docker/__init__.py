@@ -3,7 +3,10 @@ import re
 from importlib.metadata import version
 
 from opentelemetry.sdk.resources import Resource, ResourceDetector
-from opentelemetry.semconv.resource import ResourceAttributes
+from opentelemetry.semconv._incubating.attributes.container_attributes import (  # pyright: ignore[reportMissingTypeStubs]
+    CONTAINER_ID,
+    CONTAINER_RUNTIME,
+)
 
 __version__ = version("opentelemetry_resourcedetector_docker")
 
@@ -19,26 +22,26 @@ class DockerResourceDetector(ResourceDetector):
     @functools.lru_cache(maxsize=1)
     def container_id(self) -> str:
         # cgroup v2 approach
-        mount_pattern = r'.+/docker/containers/(?P<container_id>\w+)/.+'
+        mount_pattern = r".+/docker/containers/(?P<container_id>\w+)/.+"
         for line in self.mounts():
             if match := re.match(mount_pattern, line):
-                return match.group('container_id')
+                return match.group("container_id")
 
         # cgroup v1 approach
-        cgroup_pattern = r'\d+:[\w=]+:/docker(-[ce]e)?/(?P<container_id>\w+)'
+        cgroup_pattern = r"\d+:[\w=]+:/docker(-[ce]e)?/(?P<container_id>\w+)"
         for line in self.cgroup_lines():
             if match := re.match(cgroup_pattern, line):
-                return match.group('container_id')
+                return match.group("container_id")
         raise NotInDocker()
 
     @functools.lru_cache(maxsize=1)
-    def mounts(self):
-        with open('/proc/self/mountinfo', 'r', encoding='utf-8') as mounts:
+    def mounts(self) -> list[str]:
+        with open("/proc/self/mountinfo", "r", encoding="utf-8") as mounts:
             return list(mounts)
 
     @functools.lru_cache(maxsize=1)
-    def cgroup_lines(self):
-        with open('/proc/self/cgroup', 'r', encoding='utf-8') as cgroups:
+    def cgroup_lines(self) -> list[str]:
+        with open("/proc/self/cgroup", "r", encoding="utf-8") as cgroups:
             return list(cgroups)
 
     @functools.lru_cache(maxsize=1)
@@ -57,7 +60,7 @@ class DockerResourceDetector(ResourceDetector):
 
         return Resource(
             {
-                ResourceAttributes.CONTAINER_RUNTIME: 'docker',
-                ResourceAttributes.CONTAINER_ID: self.container_id(),
+                CONTAINER_RUNTIME: "docker",
+                CONTAINER_ID: self.container_id(),
             }
         )
